@@ -59,7 +59,8 @@ def predicto():
 
     final_response =confi[0]
     prediction_result = final_response
-
+    
+    #Just posting the Prediction Result of the 'winning' class - to be updated.
     response = {'prediction': {
             'level_1':prediction_result,
             'level_2':prediction_result,
