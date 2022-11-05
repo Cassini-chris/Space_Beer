@@ -30,37 +30,67 @@ print(" * Loading App ")
 def predicto():
     message = request.get_json(force=True)
     encoded = message['image']
-    api_endpoint = "us-central1-aiplatform.googleapis.com"
-    project="163870460651"
-    endpoint_id="3586558551293689856"
-    location="us-central1"
+    api_endpoint = "YOUR ENDPOINT"
+    project= "YOUR PROJECT NAME"
+    endpoint_id="YOUR PROJECT ID"
+    location="REGION"
+
+    print(encoded) #Base 64
+    imagedata = base64.b64decode(encoded) #ImageData
+    print("imagedata: ",imagedata)
+    buf = io.BytesIO(imagedata) #BytesIO
+    print("buf: ", buf)
+    img = Image.open(buf) #PIL
+
+    #Exception as VertexAI Endpoint Filesize is limited
+    if (img.width > 100):
+        print("too big")
+        print(img)
+        size = 256, 256
+        img.thumbnail(size, Image.ANTIALIAS)
+        print(img) #PIL
+
+        buffered = io.BytesIO()
+        img.save(buffered, format="PNG")
+        print("buffered:", buffered)
+        encoded = base64.b64encode(buffered.getvalue())
+        print("encoded:", encoded)
+        print("successful encoding")
+
+    else:
+        print("goood size")
+
     filename=encoded
 
+    # Client setup
     client_options = {"api_endpoint": api_endpoint}
     client = aiplatform.gapic.PredictionServiceClient(client_options=client_options)
-    encoded_content = filename
 
+    # Instance setup
+    encoded_content = filename
     instance = predict.instance.ImageClassificationPredictionInstance(content=encoded_content,).to_value()
     instances = [instance]
+
+    # Parameter / Endpoint setup
     parameters = predict.params.ImageClassificationPredictionParams(confidence_threshold=0.5, max_predictions=5, ).to_value()
     endpoint = client.endpoint_path(project=project, location=location, endpoint=endpoint_id)
+
+    # Prediction
     response = client.predict(endpoint=endpoint, instances=instances, parameters=parameters)
     predictions = response.predictions
-    print(predictions)
+
+    #Output 
     for prediction in predictions:
         final_output = dict(prediction)
-        print(final_output)
-    print(type(final_output))
 
     for key, value in final_output.items() :
       print(key, value)
     confi = (final_output['confidences'])
-    print(confi[0])
 
     final_response =confi[0]
     prediction_result = final_response
-    
-    #Just posting the Prediction Result of the 'winning' class - to be updated.
+
+    # Placeholder for all classes - To be rewritten
     response = {'prediction': {
             'level_1':prediction_result,
             'level_2':prediction_result,
